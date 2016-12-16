@@ -28,7 +28,7 @@ const HourlyItem = ({data}) => {
             <View>
                 <Image source={icons.get(icon)} style={styles.iconStyle}/>
             </View>
-            <View>
+            <View style={{marginLeft: 10}} >
                 <Text>{moment.unix(time).calendar()}</Text>
                 <Text>{summary}</Text>
                 <Text>{parseFloat((temperature-32)/9*5).toFixed(1)} °C</Text>
@@ -41,14 +41,15 @@ const HourlyItem = ({data}) => {
 
 const styles = {
     containerStyle:{
-        backgroundColor:'snow',
+        backgroundColor:'white',
+        borderWidth: 1,
+        borderColor: '#000',
         flexDirection: 'row',
         elevation:1,
-        backgroundColor: 'rgba(148,154,163,0.5)',
         marginLeft:5,
         marginRight:5,
-        marginTop:2,
-        marginBottom:2
+        marginTop:4,
+        marginBottom:4
     },
     iconStyle: {
         width:100,
