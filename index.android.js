@@ -5,7 +5,7 @@
  */
 
 import React, {Component} from 'react';
-import {AppRegistry, StyleSheet, Text, View, ScrollView, TouchableOpacity, Linking, ListView} from 'react-native';
+import {AppRegistry, StyleSheet, Text, View, ScrollView, TouchableOpacity, Linking, ListView, Navigator } from 'react-native';
 import Header from './src/components/Header';
 import HourlyItem from './src/components/HourlyItem';
 import moment from 'moment';
@@ -19,9 +19,10 @@ export default class weather extends Component {
     weather: null
   };
 
+  darkSkyLink = 'https://www.darksky.net';
+
   componentWillMount() {
-    fetch('https://api.darksky.net/forecast/53536b204bd8824a4c157697e0c24d7c/37.8267,-122.4' +
-          '233')
+    fetch('https://api.darksky.net/forecast/53536b204bd8824a4c157697e0c24d7c/37.8267,-122.4233')
       .then(response => response.json())
       .then(responseJSON => {
         this.setState({weather: responseJSON});
@@ -33,16 +34,14 @@ export default class weather extends Component {
 
     return (
       <View style={styles.container}>
-        <Header headerText={'Header'}/>
-        <Button  onPress={()=> Linking.openURL('https://www.darksky.net')}>
-          Open in Web
-        </Button>
-        {this.renderForecast()}
+        <Header headerText={'Header'}/>      
+        {this.renderHourlyForecast()}
+        <Button  onPress={()=> Linking.openURL('https://www.darksky.net')}>Browser</Button>
       </View>
     );
   }
 
-  renderForecast() {
+  renderHourlyForecast() {
     if(this.state.weather != null){
       const {currently, hourly, daily} = this.state.weather;
       const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -52,10 +51,36 @@ export default class weather extends Component {
         //   <HourlyItem key={forecastItem.time} data={forecastItem}/>
         <ListView
           dataSource={dataSource}
+          renderRow={(rowData) => { 
+              console.log(rowData);
+              console.log(dataSource);
+              return <HourlyItem key={rowData.time} data={rowData}/> 
+            } 
+          }
+          renderFooter={()=><Button onPress={()=> Linking.openURL(this.darkSkyLink)}>More</Button>}
+          />
+        )
+    }else{
+      return <Text>Unable to load hourly forecast</Text>;
+    }
+  }
+
+  renderDailyForecast(){
+    if(this.state.weather != null){
+      const {daily} = this.state.weather;
+      // TODO WTF?!?!?!?!?!
+      const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+      // TODO WTF?!?!?!?!?!
+      dataSource = ds.cloneWithRows(hourly.data);
+      return (
+        // hourly.data.map(forecastItem => 
+        //   <HourlyItem key={forecastItem.time} data={forecastItem}/>
+        <ListView
+          dataSource={dataSource}
           renderRow={(rowData) => <HourlyItem key={rowData.time} data={rowData}/>} />
         )
     }else{
-      return <Text>Loading</Text>;
+      return <Text>Unable to load daily forecast</Text>;
     }
   }
 

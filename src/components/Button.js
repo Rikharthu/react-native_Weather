@@ -1,38 +1,39 @@
 /*eslint linebreak-style: ["error", "windows"]*/
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, View} from 'react-native';
 
 const Button = ({onPress, children}) => {
-    const { buttonStyle, textStyle } = styles;
-    var a=4;
+    const { button,text,container} = styles;
+    
     return (
-        <TouchableOpacity 
-            style={buttonStyle}
-            onPress={() => onPress()}
-        >
-            <Text style={textStyle}>
-                {children}
-            </Text>
-        </TouchableOpacity>
+        <View style={container}>
+            <TouchableOpacity 
+                style={button}
+                onPress={() => onPress()}>
+                <Text style={text}>
+                    {children}
+                </Text>
+            </TouchableOpacity>
+        </View>
     );
 };
 
 const styles = {
-    textStyle: {
-        alignSelf: 'center',
-        color: '#000',
-        fontSize: 16,
-        fontWeight: '600',
-        paddingTop: 10,
-        paddingBottom: 10
+    container: {
+        padding: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    buttonStyle: {
-        backgroundColor: '#fff',
+    button: {
+        borderColor: '#8E8E8E',
+        borderWidth: StyleSheet.hairlineWidth,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
         borderRadius: 5,
-        borderWidth: 1,
-        marginLeft: 5,
-        marginRight: 5
-    }
+    },
+    text: {
+        color: '#8E8E8E',
+    },
 };
 
 export default Button;
