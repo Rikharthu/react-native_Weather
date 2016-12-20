@@ -30,18 +30,19 @@ export default class weather extends Component {
   }
 
   render() {
-    console.log(this.state.weather);
+    // console.log(this.state.weather);
 
     return (
         <Navigator
-          initialRoute={{name:'home'}}
+          initialRoute={{name:'hourly'}}
           renderScene={this.renderScene}
         />        
     );
   }
 
   // depending on the required scene name return different components
-  renderScene(route, navigator){
+  // TODO поясни разницу между renderscene(){ } и renderscene= () =>{}  (второй вариант принадлежит классу ( биндит к нему, и следовательно state его))
+  renderScene =(route, navigator)=>{
     console.log('renderScene(), route='+route.name);
     switch(route.name){
       case 'home':
@@ -53,13 +54,14 @@ export default class weather extends Component {
           <Text>daily</Text>
         );
       case 'hourly': 
+        
         return(
-          <Text>Hourly</Text>
+          this.renderHourlyForecast()
         );
     }
   }
 
-  renderHourlyForecast() {
+  renderHourlyForecast(){
     console.log('rendering forecast')
     if(this.state.weather != null){
       const {currently, hourly, daily} = this.state.weather;
@@ -69,8 +71,8 @@ export default class weather extends Component {
         <ListView
           dataSource={dataSource}
           renderRow={(rowData) => { 
-              console.log(rowData);
-              console.log(dataSource);
+              // console.log(rowData);
+              // console.log(dataSource);
               return <HourlyItem key={rowData.time} data={rowData}/> 
             } 
           }
@@ -102,6 +104,29 @@ export default class weather extends Component {
   }
 
 }
+
+const HourlyForecast =(props) => {
+    console.log('rendering forecast')
+    if(props.weather != null){
+      const {currently, hourly, daily} = props.weather;
+      const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+      dataSource = ds.cloneWithRows(hourly.data);
+      return (
+        <ListView
+          dataSource={dataSource}
+          renderRow={(rowData) => { 
+              // console.log(rowData);
+              // console.log(dataSource);
+              return <HourlyItem key={rowData.time} data={rowData}/> 
+            } 
+          }
+          renderFooter={()=><Button onPress={()=> Linking.openURL("")}>More</Button>}
+          />
+        )
+    }else{
+      return <Text>Unable to load hourly forecast</Text>;
+    }    
+  }
 
 const styles = {
     buttonContainer: {
