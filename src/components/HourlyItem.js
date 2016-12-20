@@ -52,8 +52,8 @@ const styles = {
         marginBottom:4
     },
     iconStyle: {
-        width:100,
-        height: 100
+        width:80,
+        height: 80
     }
 }
 
