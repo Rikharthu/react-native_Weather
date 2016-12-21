@@ -3,26 +3,12 @@ import {AppRegistry, StyleSheet, Text, View, Image} from 'react-native';
 import Card from './Card';
 import CardSection from './CardSection';
 import moment from 'moment';
-
-
-// Потому-что React-Native Bundler - замечательная вещь!
-var icons = new Map();
-icons.set("clear-day",require('../assets/clear-day.png'));
-icons.set("wind",require('../assets/wind.png'));
-icons.set("clear-night",require('../assets/clear-night.png'));
-icons.set("cloudy",require('../assets/cloudy.png'));
-icons.set("fog",require('../assets/fog.png'));
-icons.set("partly-cloudy-day",require('../assets/partly-cloudy-day.png'));
-icons.set("partly-cloudy-night",require('../assets/partly-cloudy-night.png'));
-icons.set("rain",require('../assets/rain.png'));
-icons.set("sleet",require('../assets/sleet.png'));
-icons.set("snow",require('../assets/snow.png'));
-
+import {icons} from '../assets';
 
 const HourlyItem = ({data}) => {
     
     const {time,summary, temperature, humidity, precipProbability, icon} = data;
-
+    console.log('time left until day end'+moment().endOf('day').from(moment.unix(time)))
     return (
         <View style={styles.containerStyle}>
             <View>
