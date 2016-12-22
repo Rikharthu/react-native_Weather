@@ -15,6 +15,8 @@ import Button from './src/components/Button';
 import CardSection from './src/components/CardSection';
 import CurrentForecast from './src/components/CurrentForecast';
 import CurrentForecastScene from './src/scenes/CurrentForecastScene';
+// custom native module
+import MyToastAndroid from './src/modules/MyToastAndroid';
 
 
 var routes = [
@@ -25,11 +27,11 @@ var routes = [
 
 // TODO how it works?
 // ref={(nav) => { navigator = nav; }} ????
-var navigator; 
+var sceneNavigator; 
 // TODO how it works?
 BackAndroid.addEventListener('hardwareBackPress', () => {
-    if (navigator && navigator.getCurrentRoutes().length > 1) {
-        navigator.pop();
+    if (sceneNavigator && sceneNavigator.getCurrentRoutes().length > 1) {
+        sceneNavigator.pop();
         return true;
     }
     return false;
@@ -59,7 +61,8 @@ var NavigationBarRouteMapper={
 export default class weather extends Component {
 
   state = {
-    weather: null
+    weather: null,
+    location: { latitude:  55.88333, longitude: 26.53333}
   };
 
   darkSkyLink = 'https://www.darksky.net';
@@ -68,16 +71,37 @@ export default class weather extends Component {
     return 'https://api.darksky.net/forecast/53536b204bd8824a4c157697e0c24d7c/'+long+','+lat;
   }
 
+  componentDidMount() {
+    this.updateLocation();
+  }
+
+  updateLocation = () =>{
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        var initialPosition = position.coords;
+        this.setState({location:initialPosition});
+        this.refresh(position.coords.latitude, position.coords.longitude)
+      },
+      (error) => MyToastAndroid.show(error,MyToastAndroid.SHORT),
+      {enableHighAccuracy: false, timeout: 10000, maximumAge: 60000}
+    )
+  }
+
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchID);
+  }
+
   componentWillMount() {
-    this.refresh();
+    const {latitude, longitude} = this.state.location;
+    console.log('comp '+latitude+' '+longitude)
+    this.refresh(latitude, longitude);
   }
 
   render() {
     // console.log(this.state.weather);
-    console.log(this.state.weather)
     return (
       <Navigator
-        ref={(nav) => { navigator = nav; }}
+        ref={(nav) => { sceneNavigator = nav; }}
         initialRoute={routes[0]}
         renderScene={this.renderScene}
         onBack={() => {
@@ -104,40 +128,39 @@ export default class weather extends Component {
   // TODO поясни разницу между renderscene(){ } и renderscene= () =>{}  (второй вариант принадлежит классу ( биндит к нему, и следовательно state его))
   renderScene = (route, navigator) => {
     console.log('renderScene(), route=' + route.name);
+
     switch (route.name) {
       case 'home':
         if(this.state.weather!=null){
           return (
-            <View style={{flex:1}}>
+            <ScrollView>
               <CurrentForecastScene                
-                onRefreshBtnPressed={()=>this.refresh()}
+                onRefreshBtnPressed={()=>this.refreshButtonPressed()}
                 onHourlyBtnPressed={()=>this.hourlyButtonPressed(navigator)}
                 onDailyBtnPressed={()=>this.dailyButtonPressed(navigator)}
-                forecast={this.state.weather}/>              
-            </View>
+                forecast={this.state.weather}/>   
+            </ScrollView>
           );
         }else{
-          return <Text>Unable to load curent forecast</Text>;
+          return <Text>Loading</Text>;
         }
       case 'daily':
-        if(this.state.weather!=null){
           return (
             // this.renderHourlyForecast()
             <DailyForecast data={this.state.weather.daily} />
           );
-        }else{
-          return <Text>Unable to load daily forecast</Text>;
-        }
       case 'hourly':
-        if(this.state.weather!=null){
           return (
             // this.renderHourlyForecast()
             <HourlyForecast data={this.state.weather.hourly} />
           );
-        }else{
-          return <Text>Unable to load hourly forecast</Text>;
-        }
     }
+  }
+  
+  refreshButtonPressed = () =>{
+    console.log('refresh button pressed')
+    const {latitude, longitude} = this.state.location;
+    this.refresh(latitude, longitude);
   }
 
   hourlyButtonPressed = (navigator) =>{
@@ -150,14 +173,24 @@ export default class weather extends Component {
     navigator.push(routes[2]);
   }
 
-  refresh= ()=>{
+  refresh= (lat,long)=>{
     console.log('refreshing data');
-    fetch(this.darkSkyAPIEndPoint(56.9496,24.1052))
+    fetch(this.darkSkyAPIEndPoint(lat,long))
       .then(response => response.json())
       .then(responseJSON => {
+        MyToastAndroid.show('Forecast refreshed!',MyToastAndroid.SHORT)
         this.setState({ weather: responseJSON });
+      }) .catch((error) => {
+        handleNetworkError();
+        console.log(error);
+        // why cant use this.handleNetworkError() ?
       });
   }
+}
+
+handleNetworkError = ()=>{
+  MyToastAndroid.show('No internet connection!',MyToastAndroid.SHORT)
+  console.log('network error ');
 }
 
 const HourlyForecast = (props) => {
@@ -175,7 +208,7 @@ const HourlyForecast = (props) => {
         return <HourlyItem key={rowData.time} data={rowData}/>
       }
       }
-      renderFooter={() => <Button onPress={() => Linking.openURL("")}>More</Button>}
+      renderFooter={() => <Button onPress={() => Linking.openURL("http://darksky.net")}>More</Button>}
       />
   )  
 }
@@ -195,7 +228,7 @@ const DailyForecast = (props) => {
         return <DailyItem key={rowData.time} data={rowData} />
       }
       }
-      renderFooter={() => <Button onPress={() => Linking.openURL("")}>More</Button>}
+      renderFooter={() => <Button onPress={() => Linking.openURL("http://darksky.net")}>More</Button>}
       />
   )  
 }

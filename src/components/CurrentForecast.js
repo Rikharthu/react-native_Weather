@@ -16,15 +16,16 @@ const CurrentForecast = (props) => {
       <View style={styles.additionalInfoContainer}>
         <View style={styles.columnInfoContainer}>
           <Text>HUMIDITY</Text>
-          <Text style={styles.additionalInfoValue}>{humidity*100}%</Text>
-        </View>        
-        <View style={styles.columnInfoContainer}>
-          <Text>VISIBILITY</Text>
-          <Text style={styles.additionalInfoValue}>{parseFloat(visibility*1.609344).toFixed(1)} km</Text>
-        </View>
+          <Text style={styles.additionalInfoValue}>{parseFloat(humidity*100).toFixed(0)}%</Text>
+        </View>   
+        {visibility!=null? 
+          <View style={styles.columnInfoContainer}>
+            <Text>VISIBILITY</Text>
+            <Text style={styles.additionalInfoValue}>{parseFloat(visibility*1.609344).toFixed(1)} km</Text>
+          </View>:null}            
         <View style={styles.columnInfoContainer}>
           <Text>RAIN/SNOW</Text>
-          <Text style={styles.additionalInfoValue}>{precipProbability*100}%</Text>
+          <Text style={styles.additionalInfoValue}>{parseFloat(precipProbability*100).toFixed(0)}%</Text>
         </View>
       </View>
       <View style={{flexDirection:'row', justifyContent:'center',alignItems:'center',marginTop:10}}>

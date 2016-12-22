@@ -8,18 +8,18 @@ import {icons} from '../assets';
 const HourlyItem = ({data}) => {
     
     const {time,summary, temperature, humidity, precipProbability, icon} = data;
-    console.log('time left until day end'+moment().endOf('day').from(moment.unix(time)))
+    
     return (
         <View style={styles.containerStyle}>
             <View>
                 <Image source={icons.get(icon)} style={styles.iconStyle}/>
             </View>
-            <View style={{marginLeft: 10}} >
-                <Text>{moment.unix(time).calendar()}</Text>
-                <Text>{summary}</Text>
-                <Text>{parseFloat((temperature-32)/9*5).toFixed(1)} °C</Text>
-                <Text>{humidity}</Text>
-                <Text>{precipProbability*100}%</Text>            
+            <View style={styles.infoContainer} >
+                <Text style={styles.date}>{moment.unix(time).calendar()}</Text>
+                <Text style={styles.summary}>{summary}</Text>
+                <Text style={styles.temperature}>{parseFloat((temperature-32)/9*5).toFixed(1)} °C</Text>
+                <Text style={styles.humidity}>{humidity}</Text>
+                <Text style={styles.precipProbability}>{precipProbability*100}%</Text>            
             </View>
         </View>
     );
@@ -35,11 +35,28 @@ const styles = {
         marginLeft:5,
         marginRight:5,
         marginTop:4,
-        marginBottom:4
+        marginBottom:4,
+        justifyContent:'center'
     },
     iconStyle: {
         width:80,
         height: 80
+    },
+    date:{
+        color:'black',
+        fontSize:20
+    },
+    summary:{
+
+    },
+    temperature:{
+
+    },
+    humidity:{
+
+    },
+    precipProbability:{
+
     }
 }
 
