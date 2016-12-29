@@ -5,7 +5,7 @@
  */
 
 import React, { Component } from 'react';
-import { AppRegistry, StyleSheet, Text, View, ScrollView, TouchableOpacity, Linking, ListView, Navigator,TouchableHighlight, Image,BackAndroid } from 'react-native';
+import { AppRegistry, StyleSheet, Text, View, ScrollView, TouchableOpacity, Linking, ListView, Navigator,TouchableHighlight, Image,BackAndroid,StatusBar, ActivityIndicator } from 'react-native';
 import Header from './src/components/Header';
 import HourlyItem from './src/components/HourlyItem';
 import DailyItem from './src/components/DailyItem';
@@ -18,6 +18,8 @@ import CurrentForecastScene from './src/scenes/CurrentForecastScene';
 // custom native module
 import MyToastAndroid from './src/modules/MyToastAndroid';
 
+const URL_BASE="https://accintern-test.apigee.net/weather-test";
+const API_KEY='nH9oQFiGQo1UK5daR2oYYzZkASBctoLb';
 
 var routes = [
       {name: 'home', index: 0},
@@ -67,9 +69,6 @@ export default class weather extends Component {
 
   darkSkyLink = 'https://www.darksky.net';
 
-  darkSkyAPIEndPoint(long, lat){
-    return 'https://api.darksky.net/forecast/53536b204bd8824a4c157697e0c24d7c/'+long+','+lat;
-  }
 
   componentDidMount() {
     this.updateLocation();
@@ -92,35 +91,38 @@ export default class weather extends Component {
   }
 
   componentWillMount() {
-    const {latitude, longitude} = this.state.location;
-    console.log('comp '+latitude+' '+longitude)
-    this.refresh(latitude, longitude);
   }
 
   render() {
     // console.log(this.state.weather);
     return (
-      <Navigator
-        ref={(nav) => { sceneNavigator = nav; }}
-        initialRoute={routes[0]}
-        renderScene={this.renderScene}
-        onBack={() => {
-              if (route.index > 0) {
-                navigator.pop();
+      <View style={{flex:1}}>
+        <StatusBar
+          backgroundColor="black"
+          hidden={false}
+          barStyle="light-content"/>
+        <Navigator
+          ref={(nav) => { sceneNavigator = nav; }}
+          initialRoute={routes[0]}
+          renderScene={this.renderScene}
+          onBack={() => {
+                if (route.index > 0) {
+                  navigator.pop();
+                }
+              }}
+          configureScene={(route, routeStack) =>{
+            console.log(route);
+              switch(route.index){
+                case(1):
+                  return Navigator.SceneConfigs.FloatFromLeft;
+                case(2):
+                  return Navigator.SceneConfigs.FloatFromRight
               }
-            }}
-        configureScene={(route, routeStack) =>{
-          console.log(route);
-            switch(route.index){
-              case(1):
-                return Navigator.SceneConfigs.FloatFromLeft;
-              case(2):
-                return Navigator.SceneConfigs.FloatFromRight
+              return Navigator.SceneConfigs.FloatFromBottom;
             }
-            return Navigator.SceneConfigs.FloatFromBottom;
           }
-        }
-        />
+          />
+        </View>
     );
   }
 
@@ -142,7 +144,7 @@ export default class weather extends Component {
             </ScrollView>
           );
         }else{
-          return <Text>Loading</Text>;
+          return <LoadingScreen/>
         }
       case 'daily':
           return (
@@ -156,26 +158,28 @@ export default class weather extends Component {
           );
     }
   }
-  
+
   refreshButtonPressed = () =>{
-    console.log('refresh button pressed')
     const {latitude, longitude} = this.state.location;
     this.refresh(latitude, longitude);
   }
 
   hourlyButtonPressed = (navigator) =>{
-    console.log('hourly button pressed')
     navigator.push(routes[1]);
   }
 
   dailyButtonPressed = (navigator) =>{
-    console.log('daily button pressed')
     navigator.push(routes[2]);
   }
 
   refresh= (lat,long)=>{
-    console.log('refreshing data');
-    fetch(this.darkSkyAPIEndPoint(lat,long))
+    apiURL=URL_BASE+"?lat="+lat+"&long="+long;
+    
+    fetch(apiURL, {
+        headers:{
+          'apiKey':API_KEY
+        }
+      })
       .then(response => response.json())
       .then(responseJSON => {
         MyToastAndroid.show('Forecast refreshed!',MyToastAndroid.SHORT)
@@ -209,6 +213,13 @@ const HourlyForecast = (props) => {
       }
       }
       renderFooter={() => <Button onPress={() => Linking.openURL("http://darksky.net")}>More</Button>}
+      renderSeparator={(sectionID,rowID,adjacentRowHighlighted ) =><View
+        key={`${sectionID}-${rowID}`}
+        style={{
+          height: 1,
+          backgroundColor: '#CCCCCC',
+        }}
+      />}
       />
   )  
 }
@@ -233,11 +244,40 @@ const DailyForecast = (props) => {
   )  
 }
 
+const LoadingScreen = () =>{
+
+  return (
+    <View style={styles.progressBarContainer}>
+      <Text style={styles.loadingLabel}>Loading</Text>
+      <ActivityIndicator 
+        style={styles.progressBarStyle}
+        size="large"/>
+      <Text style={styles.loadingInfo}>Gettings Your current location...</Text>
+    </View>
+  )
+}
+
 const styles = {
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+  },
+  progressBarContainer:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center'
+  },
+  loadingLabel:{
+    color:'black',
+    fontSize:24
+  },
+  loadingInfo:{
+    color:'gray'
+  },
+  progressBarStyle:{
+    height:50,
+    width:50
   },
   navbar:{
     backgroundColor: '#F6F6F6',
@@ -256,5 +296,6 @@ const styles = {
     height: 80
   }
 };
+
 
 AppRegistry.registerComponent('weather', () => weather);

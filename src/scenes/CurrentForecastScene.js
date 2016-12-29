@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
 import moment from 'moment';
 import CurrentForecast from '../components/CurrentForecast';
 import Button from '../components/Button';
@@ -10,23 +10,53 @@ function timezoneToText(timezone){
   return timezone.replace('/',', ').replace('_',' ');
 }
 
-const CurrentForecastScene = ({forecast, onHourlyBtnPressed, onDailyBtnPressed, onRefreshBtnPressed}) =>{
-    const {currently, timezone}=forecast;
+function openDarkSkyPromo(){
+    Linking.openURL("https://darksky.net/poweredby/")
+}
+export default class CurrentForecastScene extends Component{
 
+    state={
+        locationLabelExpanded:false,
+        loading:false
+    }
 
-    return (
+    render(){
+
+        const {currently, address}=this.props.forecast;
+         return (
         <View style={styles.sceneContainer}>
             <View style={styles.headerInfo}>
-                <Button onPress={ () => onRefreshBtnPressed() }>Refresh</Button>
-                <Text style={styles.locationLabel}>{timezoneToText(timezone)}</Text>
+                {
+                    this.state.loading? 
+                    <ActivityIndicator 
+                        style={styles.progressBarStyle}
+                        size="large"/>
+                    :<Button onPress={ () => {
+                        this.setState({loading:true})
+                        this.props.onRefreshBtnPressed()
+                    } }>Refresh</Button> 
+                }
+                <Text 
+                    onPress={()=>{
+                        this.setState({locationLabelExpanded: !this.state.locationLabelExpanded})
+                    }}
+                    style={styles.locationLabel}>{this.state.locationLabelExpanded?"Expanded address":address}</Text>
             </View>
             <CurrentForecast forecastData={currently}/>
             <View style={styles.buttonsContainer}>
-                <Button onPress={ () => onHourlyBtnPressed() }>Hourly</Button>
-                <Button onPress={ () => onDailyBtnPressed() }>Daily</Button>
+                <Button onPress={ () => this.props.onHourlyBtnPressed() }>Hourly</Button>
+                <Button onPress={ () => this.props.onDailyBtnPressed() }>Daily</Button>
             </View>
+            <View style={{height:10}}>
+            </View>
+            <TouchableOpacity 
+                onPress={openDarkSkyPromo.bind(this)}
+                >
+                <Text style={styles.darkSkyLabel}>Powered by Dark Sky</Text>
+            </TouchableOpacity>
         </View>
     )
+    }
 }
 
 const styles = {
@@ -49,7 +79,12 @@ const styles = {
     locationLabel:{
         color:'black',
         fontSize:28
+    },
+    darkSkyLabel:{
+        fontStyle:'italic',
+        alignSelf:'center',
+        fontWeight:'bold',
+        color:'#babbbc',
+        fontSize:20
     }
 }
-
-export default CurrentForecastScene;
