@@ -18,7 +18,7 @@ import CurrentForecastScene from './src/scenes/CurrentForecastScene';
 // custom native module
 import MyToastAndroid from './src/modules/MyToastAndroid';
 
-const URL_BASE="https://accintern-test.apigee.net/weather-test";
+const URL_BASE="https://accintern-test.apigee.net/v1/weather";
 const API_KEY='nH9oQFiGQo1UK5daR2oYYzZkASBctoLb';
 
 var routes = [
@@ -173,7 +173,7 @@ export default class weather extends Component {
   }
 
   refresh= (lat,long)=>{
-    apiURL=URL_BASE+"?lat="+lat+"&long="+long;
+    apiURL=URL_BASE+"?lat="+lat+"&lng="+long;
     
     fetch(apiURL, {
         headers:{
