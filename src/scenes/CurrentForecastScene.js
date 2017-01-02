@@ -20,14 +20,18 @@ export default class CurrentForecastScene extends Component{
         loading:false
     }
 
-    render(){
+    componentWillMount(){
+        
+    }
 
+    render(){
+        console.log(this.props.loading)
         const {currently, address}=this.props.forecast;
          return (
         <View style={styles.sceneContainer}>
             <View style={styles.headerInfo}>
                 {
-                    this.state.loading? 
+                    this.props.loading? 
                     <ActivityIndicator 
                         style={styles.progressBarStyle}
                         size="large"/>

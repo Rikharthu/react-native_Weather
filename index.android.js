@@ -64,7 +64,8 @@ export default class weather extends Component {
 
   state = {
     weather: null,
-    location: { latitude:  55.88333, longitude: 26.53333}
+    location: { latitude:  55.88333, longitude: 26.53333},
+    loadingState: "UNKNOWN"
   };
 
   darkSkyLink = 'https://www.darksky.net';
@@ -75,6 +76,7 @@ export default class weather extends Component {
   }
 
   updateLocation = () =>{
+    this.setState({loadingState: "LOCATION"})
     navigator.geolocation.getCurrentPosition(
       (position) => {
         var initialPosition = position.coords;
@@ -129,14 +131,15 @@ export default class weather extends Component {
   // depending on the required scene name return different components
   // TODO поясни разницу между renderscene(){ } и renderscene= () =>{}  (второй вариант принадлежит классу ( биндит к нему, и следовательно state его))
   renderScene = (route, navigator) => {
-    console.log('renderScene(), route=' + route.name);
-
+    loading = this.state.loadingState==="OK";
+    console.log("loading: "+loading+this.state.loadingState)
     switch (route.name) {
       case 'home':
         if(this.state.weather!=null){
           return (
             <ScrollView>
-              <CurrentForecastScene                
+              <CurrentForecastScene    
+                loading={!loading}            
                 onRefreshBtnPressed={()=>this.refreshButtonPressed()}
                 onHourlyBtnPressed={()=>this.hourlyButtonPressed(navigator)}
                 onDailyBtnPressed={()=>this.dailyButtonPressed(navigator)}
@@ -144,7 +147,7 @@ export default class weather extends Component {
             </ScrollView>
           );
         }else{
-          return <LoadingScreen/>
+          return this.LoadingScreen();
         }
       case 'daily':
           return (
@@ -160,6 +163,7 @@ export default class weather extends Component {
   }
 
   refreshButtonPressed = () =>{
+    this.setState({loadingState:"API_RESPONSE"})
     const {latitude, longitude} = this.state.location;
     this.refresh(latitude, longitude);
   }
@@ -173,6 +177,8 @@ export default class weather extends Component {
   }
 
   refresh= (lat,long)=>{
+    
+    this.setState({loadingState: "API_RESPONSE"})
     apiURL=URL_BASE+"?lat="+lat+"&lng="+long;
     
     fetch(apiURL, {
@@ -182,7 +188,10 @@ export default class weather extends Component {
       })
       .then(response => response.json())
       .then(responseJSON => {
+
         MyToastAndroid.show('Forecast refreshed!',MyToastAndroid.SHORT)
+        // update btn
+        this.setState({loadingState:"OK"});
         this.setState({ weather: responseJSON });
       }) .catch((error) => {
         handleNetworkError();
@@ -190,6 +199,29 @@ export default class weather extends Component {
         // why cant use this.handleNetworkError() ?
       });
   }
+
+  LoadingScreen = () =>{
+    var msg;
+    switch(this.state.loadingState){
+              case "LOCATION":
+                msg= <Text style={styles.loadingInfo}>Gettings Your current location...</Text>;
+              case "API_RESPONSE":
+                msg= <Text style={styles.loadingInfo}>Waiting for the forecast response...</Text>;
+    }
+
+    return (
+      <View style={styles.progressBarContainer}>
+        <Text style={styles.loadingLabel}>Loading</Text>
+        <ActivityIndicator 
+          style={styles.progressBarStyle}
+          size="large"/>
+          { 
+            msg
+          }
+      </View>
+    )
+}
+
 }
 
 handleNetworkError = ()=>{
@@ -242,19 +274,6 @@ const DailyForecast = (props) => {
       renderFooter={() => <Button onPress={() => Linking.openURL("http://darksky.net")}>More</Button>}
       />
   )  
-}
-
-const LoadingScreen = () =>{
-
-  return (
-    <View style={styles.progressBarContainer}>
-      <Text style={styles.loadingLabel}>Loading</Text>
-      <ActivityIndicator 
-        style={styles.progressBarStyle}
-        size="large"/>
-      <Text style={styles.loadingInfo}>Gettings Your current location...</Text>
-    </View>
-  )
 }
 
 const styles = {
